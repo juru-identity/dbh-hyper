@@ -865,6 +865,76 @@ func JSONtoCompany(ithis []byte) (Company, error) {
 
 
 
+/*
+
+//////////////////////////////////////////////////////////
+// Converts JSON String to an ART Object
+//////////////////////////////////////////////////////////
+func JSONtoAR(data []byte) (ItemObject, error) {
+
+	ar := ItemObject{}
+	err := json.Unmarshal([]byte(data), &ar)
+	if err != nil {
+		fmt.Println("Unmarshal failed : ", err)
+	}
+
+	return ar, err
+}
+
+//////////////////////////////////////////////////////////
+// Converts an ART Object to a JSON String
+//////////////////////////////////////////////////////////
+func ARtoJSON(ar ItemObject) ([]byte, error) {
+
+	ajson, err := json.Marshal(ar)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	return ajson, nil
+}
+
+//////////////////////////////////////////////////////////
+// Converts an BID to a JSON String
+//////////////////////////////////////////////////////////
+func ItemLogtoJSON(item ItemLog) ([]byte, error) {
+
+	ajson, err := json.Marshal(item)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	return ajson, nil
+}
+
+//////////////////////////////////////////////////////////
+// Converts an User Object to a JSON String
+//////////////////////////////////////////////////////////
+func JSONtoItemLog(ithis []byte) (ItemLog, error) {
+
+	item := ItemLog{}
+	err := json.Unmarshal(ithis, &item)
+	if err != nil {
+		fmt.Println("JSONtoItemLog error: ", err)
+		return item, err
+	}
+	return item, err
+}
+
+//////////////////////////////////////////////////////////
+// Converts an Auction Request to a JSON String
+//////////////////////////////////////////////////////////
+func AucReqtoJSON(ar AuctionRequest) ([]byte, error) {
+
+	ajson, err := json.Marshal(ar)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	return ajson, nil
+}
+
+//////////////////////////////////////////////////////////
 // Converts an User Object to a JSON String
 //////////////////////////////////////////////////////////
 func JSONtoAucReq(areq []byte) (AuctionRequest, error) {
@@ -1265,4 +1335,149 @@ func GetList(stub shim.ChaincodeStubInterface, tableName string, args []string) 
 	return rows, nil
 }
 
+
+/*
+/////////////////////////////////////////////////////////////////
+// This function checks the incoming args stuff for a valid record
+// type entry as per the declared array recType[]
+// The assumption is that rectType can be anywhere in the args or struct
+// not necessarily in args[1] as per my old logic
+// The Request type is used to process the record accordingly
+/////////////////////////////////////////////////////////////////
+func IdentifyReqType(args []string) string {
+	for _, rt := range args {
+		for _, val := range recType {
+			if val == rt {
+				return rt
+			}
+		}
+	}
+	return "DEFAULT"
+}
+
+/////////////////////////////////////////////////////////////////
+// This function checks the incoming args stuff for a valid record
+// type entry as per the declared array recType[]
+// The assumption is that rectType can be anywhere in the args or struct
+// not necessarily in args[1] as per my old logic
+// The Request type is used to process the record accordingly
+/////////////////////////////////////////////////////////////////
+func ChkReqType(args []string) bool {
+	for _, rt := range args {
+		for _, val := range recType {
+			if val == rt {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+/////////////////////////////////////////////////////////////////
+// Checks if the incoming invoke has a valid requesType
+// The Request type is used to process the record accordingly
+// Old Logic (see new logic up)
+/////////////////////////////////////////////////////////////////
+func CheckRequestType(rt string) bool {
+	for _, val := range recType {
+		if val == rt {
+			fmt.Println("CheckRequestType() : Valid Request Type , val : ", val, rt, "\n")
+			return true
+		}
+	}
+	fmt.Println("CheckRequestType() : Invalid Request Type , val : ", rt, "\n")
+	return false
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+// Return the right Object Buffer after validation to write to the ledger
+// var recType = []string{"ARTINV", "USER", "BID", "AUCREQ", "POSTTRAN", "OPENAUC", "CLAUC"}
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+func ProcessQueryResult(stub shim.ChaincodeStubInterface, Avalbytes []byte, args []string) error {
+
+	// Identify Record Type by scanning the args for one of the recTypes
+	// This is kind of a post-processor once the query fetches the results
+	// RecType is the style of programming in the punch card days ..
+	// ... well
+
+	var dat map[string]interface{}
+
+	if err := json.Unmarshal(Avalbytes, &dat); err != nil {
+		panic(err)
+	}
+
+	var recType string
+	recType = dat["RecType"].(string)
+	switch recType {
+
+	case "ARTINV":
+
+		ar, err := JSONtoAR(Avalbytes) //
+		if err != nil {
+			fmt.Println("ProcessRequestType(): Cannot create itemObject \n")
+			return err
+		}
+		// Decrypt Image and Save Image in a file
+		image := Decrypt(ar.AES_Key, ar.ItemImage)
+		if err != nil {
+			fmt.Println("ProcessRequestType() : Image decrytion failed ")
+			return err
+		}
+		fmt.Println("ProcessRequestType() : Image conversion from byte[] to file successfull ")
+		err = ByteArrayToImage(image, ccPath+"copy."+ar.ItemPicFN)
+		if err != nil {
+
+			fmt.Println("ProcessRequestType() : Image conversion from byte[] to file failed ")
+			return err
+		}
+		return err
+
+	case "USER":
+		ur, err := JSONtoUser(Avalbytes) //
+		if err != nil {
+			return err
+		}
+		fmt.Println("ProcessRequestType() : ", ur)
+		return err
+
+	case "AUCREQ":
+	case "OPENAUC":
+	case "CLAUC":
+		ar, err := JSONtoAucReq(Avalbytes) //
+		if err != nil {
+			return err
+		}
+		fmt.Println("ProcessRequestType() : ", ar)
+		return err
+	case "POSTTRAN":
+		atr, err := JSONtoTran(Avalbytes) //
+		if err != nil {
+			return err
+		}
+		fmt.Println("ProcessRequestType() : ", atr)
+		return err
+	case "BID":
+		bid, err := JSONtoBid(Avalbytes) //
+		if err != nil {
+			return err
+		}
+		fmt.Println("ProcessRequestType() : ", bid)
+		return err
+	case "DEFAULT":
+		return nil
+	case "XFER":
+		return nil
+	case "VERIFY":
+		return nil
+	default:
+
+		return errors.New("Unknown")
+	}
+	return nil
+
+}
+
+*/
 
